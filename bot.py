@@ -9,7 +9,7 @@ pwd = Path.cwd()
 
 import detection as det
 
-path = "F:/Users/admin/Desktop/bot/"
+path = 'bot/'
 
 TOKEN = '5106687890:AAG_kraeLbAPMz1HKqoRbGR19FbnijgiNoQ' 
 bot = telebot.TeleBot(TOKEN)
@@ -34,12 +34,12 @@ def take_photo(message):
     file = requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(TOKEN, file_info.file_path))
     countOfCats += 1
     nameFile = f'Picture/temp{countOfCats}.jpg'
-    cv2.imwrite(path+nameFile, det.outlineCats(file.content, path+'best.pt'))
+    cv2.imwrite(path+nameFile, det.outlineCatsOnImage(file.content, path+'best.pt'))
     bot.send_photo(message.chat.id, open(path+nameFile, 'rb'))
     print('sended')
-    #TODO: сделать название класса, вывод вероятности, опознование на видео и на несколько отправленных фото, удаление temp файлов после Nого temp
+    #TODO: сделать название класса, вывод вероятности, опознование на видео и на несколько отправленных фото, удаление temp файлов после Nого temp, скачивание и распознавание в видео-кружочках
 
-
-# Запускаем бота
-print('start')
-bot.polling(none_stop=True, interval=0)
+if __name__ == "__main__":
+    # Запускаем бота
+    print('start')
+    bot.polling(none_stop=True, interval=0)

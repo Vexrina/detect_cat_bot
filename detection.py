@@ -7,13 +7,15 @@ import io
 confThreshold = 0.4
 
 
-def outlineCats(content:bytes, weights_path: str, whose_model: str = 'ours'):
+def outlineCatsOnImage(content:bytes, weights_path: str, whose_model: str = 'ours'):
     img = np.asarray(bytearray(content), dtype="uint8")
     img = cv2.imdecode(img, cv2.IMREAD_COLOR)
     # img = io.BytesIO(content)
 
 
     model = torch.hub.load('ultralytics/yolov5', 'custom', str(weights_path))
+    model.conf = 0.1
+    model.iou = 0.15
     # model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 
 
@@ -24,6 +26,35 @@ def outlineCats(content:bytes, weights_path: str, whose_model: str = 'ours'):
     findObjects(outputs, img)
 
     return img
+
+def outlineCatsOnVideo(content:bytes, weights_path: str, out_path: str = 'ours'):
+    cap = cv2.VideoCapture(content)
+    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    fourcc = cv2.VideoWriter_fourcc('m','p','4','v')
+    writer = cv2.VideoWriter(out_path, fourcc, fps, (width, height))
+    if not cap.isOpened():
+        raise Exception("Can't open video")
+
+    model = torch.hub.load('ultralytics/yolov5', 'custom', str(weights_path))
+    model.conf = 0.1
+    model.iou = 0.15
+    # model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+
+    while cap.isOpened():   
+        ret, frame = cap.read()
+        if ret == True:
+            results = model(frame)
+            outputs =  results.xyxy[0]
+            findObjects(outputs, frame)
+            writer.write(frame)
+
+def outlineCatsOnVid(video_url: str, weights_path: str):
+    cap = cv2.VideoCapture(video_url)
+    if not cap.isOpened():
+        raise Exception("Can't open video")
+    
 
 
 
@@ -46,22 +77,23 @@ def findObjects(outputs, img):
             bbox.append([(xmin, ymin), (xmax, ymax)])
             classIds.append(classId)
             confs.append(float(confidence))
-    for box in bbox:
+    for ind, box in enumerate(bbox):
         # if classNames[classIds[i]] == "cat":
         start_point = box[0]
         end_point = box[1]
         cv2.rectangle(
-            img, start_point, end_point, (255, 0, 0), 2
+            img, start_point, end_point, (15, 255, 15), 4
         )
-        # cv2.putText(
-        #     img,
-        #     f"Cat {int(confs[i]*100)}%",
-        #     (int(x), int(y - 10)),
-        #     cv2.FONT_HERSHEY_SIMPLEX,
-        #     0.6,
-        #     (255, 0, 255),
-        #     2,
-        # )
+        cv2.putText(    
+            img,
+            f"Cat {int(confs[ind]*100)}%",
+            # (int(x), int(y - 10)),
+            (start_point[0], start_point[1]+10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            (255, 0, 255),
+            2
+        )
 
 
 if __name__ == '__main__':
