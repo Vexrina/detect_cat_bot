@@ -21,7 +21,7 @@ def start(m, res=False):
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
-    bot.send_message(message.chat.id, 'just send me photo')
+    bot.send_message(message.chat.id, 'just send me photo or video file')
 countOfCats = 0
 # getFile
 # Downloading a file is straightforward
@@ -50,20 +50,13 @@ def take_video(message):
     with open(path + download_name, 'wb') as output_file:
         file_content = bot.download_file(file_info.file_path)
         output_file.write(file_content)
-    bot.reply_to(message, f"Видео {file_name} сохранено")
     
     bot.send_message(message.chat.id, 'Please, wait...')
-    file = requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(TOKEN, file_info.file_path))
 
-    print(file)
-
-    #det.outlineCatsOnVideo(path+download_name, path+'best.pt', path + out_name)
     det.outlineCatsOnVideo(path + download_name, path+'best.pt', path + out_name)
+
     bot.send_video(message.chat.id, open(path+out_name, 'rb'))
-    #bot.send_video(message.chat.id, open(path+nameFile, 'rb'))
     print('sended')
-    # TODO: сделать название класса, вывод вероятности, опознование на видео и на несколько отправленных фото, 
-    # удаление temp файлов после Nого temp, скачивание и распознавание в видео-кружочках
 
 if __name__ == "__main__":
     # Запускаем бота
