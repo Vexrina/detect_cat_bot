@@ -1,3 +1,4 @@
 /Picture
 *.pt
 *.rar
+/bot/video/*/*.mp4
