@@ -27,13 +27,17 @@ def outlineCatsOnImage(content:bytes, weights_path: str, whose_model: str = 'our
 
     return img
 
-def outlineCatsOnVideo(content:bytes, weights_path: str, out_path: str = 'ours'):
-    cap = cv2.VideoCapture(content)
-    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+#def outlineCatsOnVideo(content:bytes, weights_path: str, out_path: str = 'ours'):
+def outlineCatsOnVideo(input_path: str, weights_path: str, out_path: str = 'ours'):
+    cap = cv2.VideoCapture(input_path)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = cap.get(cv2.CAP_PROP_FPS)
+
     fourcc = cv2.VideoWriter_fourcc('m','p','4','v')
+    
     writer = cv2.VideoWriter(out_path, fourcc, fps, (width, height))
+
     if not cap.isOpened():
         raise Exception("Can't open video")
 
@@ -41,24 +45,26 @@ def outlineCatsOnVideo(content:bytes, weights_path: str, out_path: str = 'ours')
     model.conf = 0.1
     model.iou = 0.15
     # model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
-
-    while cap.isOpened():   
+    while cap.isOpened(): 
         ret, frame = cap.read()
-        if ret == True:
-            results = model(frame)
-            outputs =  results.xyxy[0]
-            findObjects(outputs, frame)
-            writer.write(frame)
+        
+        if not ret:
+            break
+
+        results = model(frame)
+        outputs =  results.xyxy[0]
+        findObjects(outputs, frame)
+        writer.write(frame)
+
+    cap.release()
+    writer.release()
+    cv2.destroyAllWindows()
 
 def outlineCatsOnVid(video_url: str, weights_path: str):
     cap = cv2.VideoCapture(video_url)
     if not cap.isOpened():
         raise Exception("Can't open video")
     
-
-
-
-
 # функция, для нахождения котиков UwU :з
 def findObjects(outputs, img):
     hT, wT, cT = img.shape
